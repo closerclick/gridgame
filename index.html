@@ -1,12 +1,14 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>GRIDGAME (CLOSER.CLICK)</title>
+    <meta name="theme-color" content="#111111" />
   <meta name="description" content="Sandbox multijugador cooperativo en un grid. Mundo subjetivo y procedural: cada peer hostea lo que crea; props, items y enemigos programables vía DSL, con resolución por reputación." />
   <link rel="canonical" href="https://gridgame.closer.click/" />
   <meta property="og:type" content="website" />
+    <meta property="og:locale" content="es_ES" />
   <meta property="og:site_name" content="Closer Click" />
   <meta property="og:title" content="GridGame" />
   <meta property="og:description" content="Sandbox multijugador cooperativo en un grid procedural. Mundo subjetivo hosteado por cada peer." />
@@ -21,6 +23,19 @@
   <!-- Analítica cookieless autohosteada (GoatCounter); no cuenta en localhost/LAN. -->
   <script>window.goatcounter={path:function(p){return location.hostname+p}}</script>
   <script data-goatcounter="https://goat.closer.click/count" async src="https://goat.closer.click/count.js"></script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "GridGame",
+      "url": "https://gridgame.closer.click/",
+      "description": "Sandbox multijugador cooperativo en un grid procedural. Mundo subjetivo hosteado por cada peer.",
+      "applicationCategory": "GameApplication",
+      "operatingSystem": "Web",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "publisher": { "@type": "Organization", "name": "Closer Click", "url": "https://closer.click/" }
+    }
+    </script>
 </head>
 <body>
   <div id="app"></div>
