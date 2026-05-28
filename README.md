@@ -1,6 +1,6 @@
 # GridGame
 
-Sandbox multijugador cooperativo en un grid del ecosistema [Closer Click](https://seyacat.github.io/closerclick/). Mundo subjetivo: cada peer hostea lo que crea y carga el entorno alrededor a medida que se mueve.
+Sandbox multijugador cooperativo en un grid del ecosistema [Closer Click](https://closerclick.github.io/closerclick/). Mundo subjetivo: cada peer hostea lo que crea y carga el entorno alrededor a medida que se mueve.
 
 ## Filosofía
 
