@@ -7,7 +7,7 @@
 // repOf(pk) ∈ [0,1] = media ponderada del rating propio + endorsements, normalizada
 // (rating 0..5 → /5). Si no hay datos → 0.
 
-import { Identity } from '@gatoseya/closer-click-identity'
+import { Identity } from '@closerclick/closer-click-identity'
 
 let identity = null
 let myPubkey = null

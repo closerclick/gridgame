@@ -10,7 +10,7 @@
 // El "peerId" público es el publickey de closer-click-identity; el token del
 // proxy es efímero y se mapea internamente (1:1 mientras dura la sesión).
 
-import { getWebSocketProxyClient } from '@gatoseya/closer-click-proxy-client'
+import { getWebSocketProxyClient } from '@closerclick/closer-click-proxy-client'
 import { PeerGating } from './gating.js'
 
 const CHANNEL = 'gridgame'
