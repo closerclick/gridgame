@@ -8,11 +8,23 @@
 // (rating 0..5 → /5). Si no hay datos → 0.
 
 import { Identity } from '@closerclick/closer-click-identity'
+import { createVaultReputation } from '@closerclick/closer-click-reputation'
 
 let identity = null
 let myPubkey = null
+let _rep = null
 const repCache = new Map() // pk → { v, exp }
 const CACHE_MS = 30_000
+
+// Puente al registro compartido (reputation.closer.click). Su reputationOf ya
+// pondera por mi web-of-trust local (anti-sybil) y suma endorsements de la red
+// que no me habrían llegado por el proxy.
+function getRep () {
+  if (_rep) return _rep
+  if (!identity) return null
+  try { _rep = createVaultReputation(identity) } catch (_) { _rep = null }
+  return _rep
+}
 
 export async function initIdentity () {
   if (identity) return identity
@@ -54,6 +66,15 @@ export async function repOf (pk) {
   } catch (e) {
     console.warn('[identity] repOf failed', e)
   }
+  // Enriquecer con el registro compartido: incluye atestaciones firmadas de la
+  // red (no solo las que recibí por el proxy), ya ponderadas por mi confianza.
+  try {
+    const rep = getRep()
+    if (rep) {
+      const cloud = await rep.reputationOf(pk)
+      if (cloud && cloud.score != null) v = cloud.score
+    }
+  } catch (e) { /* best-effort; queda el agregado local */ }
   repCache.set(pk, { v, exp: now + CACHE_MS })
   return v
 }
