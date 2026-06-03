@@ -40,6 +40,10 @@ export async function initIdentity () {
 
 export function getMyPubkey () { return myPubkey }
 
+/** Instancia de identidad y de reputación (para <closer-click-profile>). */
+export function getIdentity () { return identity }
+export function getReputation () { return getRep() }
+
 export function isIdentityReady () { return identity !== null }
 
 /** Firma un payload JSON-serializable. Devuelve { signature, publickey } o null. */

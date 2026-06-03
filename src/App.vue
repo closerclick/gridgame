@@ -5,12 +5,35 @@ import { ProceduralGround } from './world/ProceduralGround.js'
 import { LocalStore } from './world/LocalStore.js'
 import { PeerLink } from './net/PeerLink.js'
 import { CombatHost } from './combat.js'
-import { initIdentity, getMyPubkey, repOf, repOfSync, warmRep } from './identity.js'
+import { initIdentity, getMyPubkey, getIdentity, getReputation, repOf, repOfSync, warmRep } from './identity.js'
 import { makeObject } from './objects/standard.js'
 import { passableAt } from './world/collision.js'
 import TilePicker from './render/TilePicker.vue'
+import { createVaultProfileProvider } from '@closerclick/closer-click-profile'
+import '@closerclick/closer-click-profile'
 
 const showPicker = ref(false)
+
+// --- Roster de jugadores conectados + perfil/reputación compartido ---
+const peers = ref([])
+const profilePk = ref(null)
+let rosterTimer = null
+let _profileProvider = null
+function shortPk (pk) { const k = pk || ''; return k.length > 16 ? k.slice(0, 8) + '…' + k.slice(-4) : k }
+async function ensureProfileProvider () {
+  if (_profileProvider) return _profileProvider
+  const reputation = getReputation()
+  if (reputation) _profileProvider = createVaultProfileProvider({ identity: getIdentity(), reputation })
+  return _profileProvider
+}
+function openPeer (pk) { if (pk && pk !== myPk) profilePk.value = pk }
+function bindProfile (el) { if (!el) return; ensureProfileProvider().then((p) => { if (p) el.provider = p }) }
+const profileTheme = {
+  '--ccp-bg': '#1a1a1f', '--ccp-bg-2': '#23232b', '--ccp-bg-3': '#2a2a33', '--ccp-bg-4': '#3a3a45',
+  '--ccp-border': '#3a3a45', '--ccp-text': '#eee', '--ccp-muted': '#9a9aa8',
+  '--ccp-accent': '#C10C3E', '--ccp-accent-2': '#9a0a31', '--ccp-gold': '#f5b301', '--ccp-derived': '#d49a00',
+  '--ccp-online': '#4ade80', '--ccp-affinity': '#a78bfa', '--ccp-input-bg': '#15151a', '--ccp-radius': '12px',
+}
 
 const canvasRef = ref(null)
 const status = ref('booting…')
@@ -139,6 +162,11 @@ onMounted(async () => {
     if (!link) return
     warmRep([...link.peers.keys()])
   }, 10000)
+
+  // Roster reactivo de jugadores conectados (link.peers no es reactivo).
+  rosterTimer = setInterval(() => {
+    peers.value = link ? [...link.peers.keys()].filter((pk) => pk && pk !== myPk) : []
+  }, 2000)
 })
 
 onBeforeUnmount(() => {
@@ -146,6 +174,7 @@ onBeforeUnmount(() => {
   link?.stop()
   combat?.destroy()
   if (moveRaf) cancelAnimationFrame(moveRaf)
+  if (rosterTimer) clearInterval(rosterTimer)
   window.removeEventListener('keydown', onKeyDown)
   window.removeEventListener('keyup', onKeyUp)
   window.removeEventListener('resize', onResize)
@@ -159,6 +188,24 @@ onBeforeUnmount(() => {
     <div class="status">{{ status }}</div>
   </div>
   <TilePicker v-if="showPicker" @close="showPicker = false" />
+
+  <div v-if="peers.length" class="roster">
+    <div class="roster-title">Jugadores</div>
+    <button v-for="pk in peers" :key="pk" class="roster-item" @click="openPeer(pk)" title="Ver perfil / reputación">
+      <span class="dot"></span>{{ shortPk(pk) }}
+    </button>
+  </div>
+
+  <closer-click-profile
+    v-if="profilePk"
+    :ref="bindProfile"
+    modal
+    mode="edit"
+    :style="profileTheme"
+    :pubkey="profilePk"
+    :name="shortPk(profilePk)"
+    @cc-profile-close="profilePk = null"
+  ></closer-click-profile>
 </template>
 
 <style scoped>
@@ -169,4 +216,19 @@ onBeforeUnmount(() => {
   font-size: 12px; pointer-events: none; text-align: center;
 }
 .status { margin-top: 4px; opacity: 0.7; font-size: 11px; }
+
+.roster {
+  position: fixed; top: 12px; right: 12px;
+  background: rgba(0,0,0,0.6); border-radius: 8px; padding: 8px;
+  display: flex; flex-direction: column; gap: 4px; min-width: 120px; max-width: 200px;
+}
+.roster-title { font-size: 10px; text-transform: uppercase; letter-spacing: .05em; opacity: .6; margin-bottom: 2px; }
+.roster-item {
+  display: flex; align-items: center; gap: 6px;
+  background: rgba(255,255,255,0.06); border: 0; border-radius: 6px;
+  color: #eee; font-size: 12px; font-family: ui-monospace, monospace;
+  padding: 5px 8px; cursor: pointer; text-align: left;
+}
+.roster-item:hover { background: rgba(255,255,255,0.14); }
+.roster-item .dot { width: 7px; height: 7px; border-radius: 50%; background: #4ade80; flex-shrink: 0; }
 </style>
