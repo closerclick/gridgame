@@ -11,6 +11,7 @@ import { passableAt } from './world/collision.js'
 import TilePicker from './render/TilePicker.vue'
 import { createVaultProfileProvider } from '@closerclick/closer-click-profile'
 import '@closerclick/closer-click-profile'
+import { useBackLayer } from '@closerclick/closer-click-nav/vue'
 
 const showPicker = ref(false)
 
@@ -27,6 +28,11 @@ async function ensureProfileProvider () {
   return _profileProvider
 }
 function openPeer (pk) { if (pk && pk !== myPk) profilePk.value = pk }
+
+// Volver unificado (@closerclick/closer-click-nav): el botón físico / chevron
+// cierra el selector de tiles o el perfil antes de salir hacia closer.click.
+useBackLayer(showPicker)
+useBackLayer(profilePk, { onClose: () => { profilePk.value = null } })
 function bindProfile (el) { if (!el) return; ensureProfileProvider().then((p) => { if (p) el.provider = p }) }
 const profileTheme = {
   '--ccp-bg': '#1a1a1f', '--ccp-bg-2': '#23232b', '--ccp-bg-3': '#2a2a33', '--ccp-bg-4': '#3a3a45',
@@ -183,6 +189,9 @@ onBeforeUnmount(() => {
 
 <template>
   <canvas ref="canvasRef" class="world"></canvas>
+  <!-- Sin header (canvas a pantalla completa): chevron de volver flotante
+       arriba a la derecha. @closerclick/closer-click-nav -->
+  <closer-click-back floating style="left:auto;right:66px;top:14px;color:#e2e8f0;--cc-back-bg:rgba(15,23,42,.55);--cc-back-bg-hover:rgba(15,23,42,.8)"></closer-click-back>
   <div class="hint">
     WASD · <b>Q</b> roca · <b>E</b> summon · <b>F</b> atacar · <b>T</b> tile picker
     <div class="status">{{ status }}</div>
