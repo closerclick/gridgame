@@ -28,11 +28,16 @@ async function ensureProfileProvider () {
   return _profileProvider
 }
 function openPeer (pk) { if (pk && pk !== myPk) profilePk.value = pk }
+// "Mi perfil": botón flotante a la izquierda de la moneda de soporte (que flota
+// arriba a la derecha). Abre el mismo Web Component compartido en modo self.
+const myProfilePk = ref(null)
+function openMyProfile () { if (myPk && !myPk.startsWith('local-')) myProfilePk.value = myPk }
 
 // Volver unificado (@closerclick/closer-click-nav): el botón físico / chevron
 // cierra el selector de tiles o el perfil antes de salir hacia closer.click.
 useBackLayer(showPicker)
 useBackLayer(profilePk, { onClose: () => { profilePk.value = null } })
+useBackLayer(myProfilePk, { onClose: () => { myProfilePk.value = null } })
 function bindProfile (el) { if (!el) return; ensureProfileProvider().then((p) => { if (p) el.provider = p }) }
 const profileTheme = {
   '--ccp-bg': '#1a1a1f', '--ccp-bg-2': '#23232b', '--ccp-bg-3': '#2a2a33', '--ccp-bg-4': '#3a3a45',
@@ -191,7 +196,13 @@ onBeforeUnmount(() => {
   <canvas ref="canvasRef" class="world"></canvas>
   <!-- Sin header (canvas a pantalla completa): chevron de volver flotante
        arriba a la derecha. @closerclick/closer-click-nav -->
-  <closer-click-back floating style="left:auto;right:66px;top:14px;color:#e2e8f0;--cc-back-bg:rgba(15,23,42,.55);--cc-back-bg-hover:rgba(15,23,42,.8)"></closer-click-back>
+  <closer-click-back floating style="left:auto;right:106px;top:14px;color:#e2e8f0;--cc-back-bg:rgba(15,23,42,.55);--cc-back-bg-hover:rgba(15,23,42,.8)"></closer-click-back>
+  <!-- "Mi perfil" flotante, justo a la izquierda de la moneda de soporte. -->
+  <button class="profile-fab" data-testid="my-profile" @click="openMyProfile" title="Mi perfil" aria-label="Mi perfil">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-6 8-6s8 2 8 6" />
+    </svg>
+  </button>
   <div class="hint">
     WASD · <b>Q</b> roca · <b>E</b> summon · <b>F</b> atacar · <b>T</b> tile picker
     <div class="status">{{ status }}</div>
@@ -215,10 +226,34 @@ onBeforeUnmount(() => {
     :name="shortPk(profilePk)"
     @cc-profile-close="profilePk = null"
   ></closer-click-profile>
+
+  <closer-click-profile
+    v-if="myProfilePk"
+    :ref="bindProfile"
+    modal
+    mode="self"
+    :style="profileTheme"
+    :pubkey="myProfilePk"
+    :name="shortPk(myProfilePk)"
+    @cc-profile-close="myProfilePk = null"
+  ></closer-click-profile>
 </template>
 
 <style scoped>
 .world { position: fixed; inset: 0; width: 100vw; height: 100vh; }
+/* "Mi perfil" flotante: a la izquierda de la moneda (right:14px) y a la derecha
+   del chevron de volver (right:106px). */
+.profile-fab {
+  position: fixed; top: 14px; right: 60px; z-index: 10;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px; padding: 0;
+  color: #e2e8f0; background: rgba(15,23,42,.55);
+  border: 1px solid rgba(255,255,255,.14); border-radius: 50%; cursor: pointer;
+  transition: background .15s;
+}
+.profile-fab:hover { background: rgba(15,23,42,.8); }
+.profile-fab svg { width: 20px; height: 20px; display: block; }
+@media (max-width: 480px) { .profile-fab { width: 32px; height: 32px; right: 54px; } }
 .hint {
   position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%);
   background: rgba(0,0,0,0.6); padding: 8px 14px; border-radius: 8px;
